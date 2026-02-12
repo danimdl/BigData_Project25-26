@@ -5,23 +5,16 @@ def calculate_stress_score(bpm, variability, velocity, pct_down):
     score = 0
     if bpm > 30: score += 25
     elif bpm > 25: score += 15
-    elif bpm < 10: score += 10
     if variability > 0.3: score += 25
-    elif variability > 0.2: score += 15
     if velocity > 0.5: score += 20
-    elif velocity > 0.3: score += 10
     if pct_down > 40: score += 20
-    elif pct_down > 25: score += 10
     return min(100, score)
 
 def get_empty_metrics():
     return {
         'duration_seconds': 0, 'total_frames': 0, 'total_blinks': 0,
-        'blinks_per_minute': 0, 'scan_path_length': 0, 'scan_path_velocity': 0,
-        'gaze_x_mean': 0.5, 'gaze_y_mean': 0.5, 'gaze_variability': 0,
-        'fixation_count': 0, 'avg_ear': 0, 'pct_looking_left': 0, 
-        'pct_looking_center': 0, 'pct_looking_right': 0, 'pct_looking_up': 0, 
-        'pct_looking_down': 0, 'stress_score': 0
+        'blinks_per_minute': 0, 'scan_path_length': 0, 'stress_score': 0,
+        'pct_talking': 0, 'avg_ear': 0, 'pct_looking_down': 0
     }
 
 def calculate_metrics(data_list):
@@ -30,9 +23,9 @@ def calculate_metrics(data_list):
     df = df[df['face_detected'] == True]
     if len(df) == 0: return get_empty_metrics()
     
-    duration = df['relative_time'].max()
+    duration = df['relative_time'].max() if 'relative_time' in df else 0.1
     total_blinks = df['blink_detected'].sum()
-    bpm = (total_blinks / duration * 60) if duration > 0 else 0
+    bpm = (total_blinks / duration * 60)
     
     gx_std, gy_std = df['gaze_x'].std(), df['gaze_y'].std()
     variability = np.sqrt(gx_std**2 + gy_std**2) if not np.isnan(gx_std) else 0
@@ -40,6 +33,10 @@ def calculate_metrics(data_list):
     
     h_counts = df['gaze_horizontal'].value_counts(normalize=True) * 100
     v_counts = df['gaze_vertical'].value_counts(normalize=True) * 100
+    
+    # Calcolo Parlato
+    talking_counts = df['is_talking'].value_counts(normalize=True) * 100
+    pct_talking = talking_counts.get(True, 0)
     
     fixation_count, consecutive = 0, 0
     for s in df['saccade_distance']:
@@ -54,7 +51,7 @@ def calculate_metrics(data_list):
         'total_blinks': int(total_blinks),
         'blinks_per_minute': round(bpm, 2),
         'scan_path_length': round(scan_path, 4),
-        'scan_path_velocity': round(scan_path / duration, 4) if duration > 0 else 0,
+        'scan_path_velocity': round(scan_path / duration, 4),
         'gaze_x_mean': round(df['gaze_x'].mean(), 4),
         'gaze_y_mean': round(df['gaze_y'].mean(), 4),
         'gaze_variability': round(variability, 4),
@@ -65,5 +62,6 @@ def calculate_metrics(data_list):
         'pct_looking_right': round(h_counts.get('destra', 0), 1),
         'pct_looking_up': round(v_counts.get('su', 0), 1),
         'pct_looking_down': round(v_counts.get('giù', 0), 1),
-        'stress_score': calculate_stress_score(bpm, variability, scan_path/duration if duration > 0 else 0, v_counts.get('giù', 0)),
+        'pct_talking': round(pct_talking, 1),
+        'stress_score': calculate_stress_score(bpm, variability, scan_path/duration, v_counts.get('giù', 0)),
     }
