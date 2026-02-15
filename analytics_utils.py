@@ -1,12 +1,12 @@
 import pandas as pd
 import numpy as np
 
-# ========== FUNZIONI DI SUPPORTO ==========
+# ========== SUPPORT FUNCTIONS ==========
 
 def add_relative_time(data_list):
     """
-    Aggiunge il campo 'relative_time' a ogni elemento della lista.
-    Necessario per calcolare la durata della sessione.
+    Adds a 'relative_time' field to each element in the list.
+    Necessary to calculate session duration from the start.
     """
     if not data_list:
         return data_list
@@ -20,7 +20,7 @@ def add_relative_time(data_list):
 
 def calculate_saccade_distance(data_list):
     """
-    Calcola la distanza saccadica (movimento dello sguardo) tra frame consecutivi.
+    Calculates saccadic distance (gaze movement) between consecutive frames.
     """
     if len(data_list) < 2:
         if data_list:
@@ -41,110 +41,103 @@ def calculate_saccade_distance(data_list):
     return data_list
 
 
-# ========== CALCOLO STRESS REALISTICO ==========
+# ========== REALISTIC STRESS CALCULATION ==========
 
 def calculate_stress_score(bpm, variability, velocity, pct_down):
     """
-    Calcola lo stress score REALISTICO basato su parametri eye-tracking.
+    Calculates a REALISTIC stress score based on eye-tracking parameters.
     
-    VALORI NORMALI:
-    - Blink rate: 12-20/min (normale riposo)
-    - Variability: 0.1-0.25 (normale)
-    - Velocity: 0.1-0.4 (normale)
-    - Pct_down: 0-30% (normale)
+    NORMAL VALUES:
+    - Blink rate: 12-20/min (resting normal)
+    - Variability: 0.1-0.25 (normal)
+    - Velocity: 0.1-0.4 (normal)
+    - Pct_down: 0-30% (normal)
     
-    Logica REALISTICA:
-    - Piccole deviazioni dalla norma = stress basso
-    - Medie deviazioni = stress moderato
-    - Grandi deviazioni = stress alto
+    LOGIC:
+    - Small deviations = Low stress
+    - Medium deviations = Moderate stress
+    - Large deviations = High stress
     
     Args:
-        bpm: Blink per minuto
-        variability: Variabilità dello sguardo (0-1)
-        velocity: Velocità scan path
-        pct_down: Percentuale sguardo verso il basso
+        bpm: Blinks per minute
+        variability: Gaze variability (0-1)
+        velocity: Scan path velocity
+        pct_down: Percentage of looking down
         
     Returns:
         int: Stress score 0-100
     """
     score = 0
     
-    # === BLINK RATE (0-30 punti) ===
-    # Normale: 12-20/min
-    if bpm > 35:  # Estremamente alto
+    # === BLINK RATE (0-30 points) ===
+    # Normal: 12-20/min
+    if bpm > 35:  # Extremely high
         score += 30
-    elif bpm > 28:  # Molto alto
+    elif bpm > 28:  # Very high
         score += 20
-    elif bpm > 23:  # Alto
+    elif bpm > 23:  # High
         score += 10
-    elif bpm < 5 and bpm > 0:  # Troppo basso (concentrazione estrema)
+    elif bpm < 5 and bpm > 0:  # Too low (extreme concentration/freeze)
         score += 15
     elif bpm < 8:
         score += 8
-    # Range 8-23 = normale, nessun punteggio
+    # Range 8-23 = normal
     
-    # === VARIABILITÀ SGUARDO (0-30 punti) ===
-    # Normale: 0.1-0.25
-    if variability > 0.5:  # Estremamente instabile
+    # === GAZE VARIABILITY (0-30 points) ===
+    # Normal: 0.1-0.25
+    if variability > 0.5:  # Extremely unstable
         score += 30
-    elif variability > 0.4:  # Molto instabile
+    elif variability > 0.4:  # Very unstable
         score += 20
-    elif variability > 0.3:  # Instabile
+    elif variability > 0.3:  # Unstable
         score += 10
-    elif variability < 0.05:  # Troppo fisso (può indicare stress/freeze)
+    elif variability < 0.05:  # Too fixed (staring/freeze)
         score += 5
-    # Range 0.05-0.3 = normale
+    # Range 0.05-0.3 = normal
     
-    # === VELOCITÀ MOVIMENTI (0-25 punti) ===
-    # Normale: 0.1-0.4
-    if velocity > 0.8:  # Estremamente rapido
+    # === SCAN VELOCITY (0-25 points) ===
+    # Normal: 0.1-0.4
+    if velocity > 0.8:  # Extremely fast
         score += 25
-    elif velocity > 0.6:  # Molto rapido
+    elif velocity > 0.6:  # Very fast
         score += 15
-    elif velocity > 0.5:  # Rapido
+    elif velocity > 0.5:  # Fast
         score += 8
-    # Range 0-0.5 = normale
+    # Range 0-0.5 = normal
     
-    # === SGUARDO VERSO IL BASSO (0-15 punti) ===
-    # Normale: 0-30%
-    if pct_down > 60:  # Estremamente alto (evitamento)
+    # === LOOKING DOWN (0-15 points) ===
+    # Normal: 0-30%
+    if pct_down > 60:  # Extremely high (avoidance)
         score += 15
-    elif pct_down > 50:  # Molto alto
+    elif pct_down > 50:  # Very high
         score += 10
-    elif pct_down > 40:  # Alto
+    elif pct_down > 40:  # High
         score += 5
-    # Range 0-40% = normale
+    # Range 0-40% = normal
     
     return min(100, max(0, score))
 
 
 def get_stress_level(stress_score):
     """
-    Converti stress score numerico in livello descrittivo.
-    
-    SCALA REALISTICA:
-    0-15: basso (rilassato)
-    15-30: moderato-basso (leggera tensione)
-    30-50: moderato (stress gestibile)
-    50-70: moderato-alto (stress significativo)
-    70-100: alto (stress elevato)
+    Converts numeric stress score to descriptive level.
     """
     if stress_score < 15:
-        return "basso"
+        return "Low"
     elif stress_score < 30:
-        return "moderato-basso"
+        return "Moderate-Low"
     elif stress_score < 50:
-        return "moderato"
+        return "Moderate"
     elif stress_score < 70:
-        return "moderato-alto"
+        return "Moderate-High"
     else:
-        return "alto"
+        return "High"
 
 
-# ========== METRICHE ==========
+# ========== METRICS ==========
 
 def get_empty_metrics():
-    """Restituisce un dizionario di metriche vuote/default"""
+    """Returns a dictionary of empty/default metrics"""
     return {
         'duration_seconds': 0,
         'total_frames': 0,
@@ -164,33 +157,31 @@ def get_empty_metrics():
         'pct_looking_down': 0,
         'pct_talking': 0,
         'stress_score': 0,
-        'stress_level': 'basso'
+        'stress_level': 'Low'
     }
 
 
 def calculate_metrics(data_list):
     """
-    Calcola tutte le metriche aggregate da una lista di frame data.
+    Calculates all aggregated metrics from a list of frames.
     
     Args:
-        data_list: Lista di dizionari con dati per frame
+        data_list: List of dictionaries containing frame data
         
     Returns:
-        dict: Dizionario completo di metriche calcolate
+        dict: Complete dictionary of calculated metrics
     """
     if not data_list:
         return get_empty_metrics()
     
-    # Converti in DataFrame
     df = pd.DataFrame(data_list)
     
-    # Filtra solo frame con faccia rilevata
     df = df[df['face_detected'] == True]
     
     if len(df) == 0:
         return get_empty_metrics()
     
-    # === DURATA ===
+    # === DURATION ===
     duration = df['relative_time'].max() if 'relative_time' in df.columns else 0.1
     if duration <= 0:
         duration = 0.1
@@ -208,11 +199,10 @@ def calculate_metrics(data_list):
     scan_path = df['saccade_distance'].sum() if 'saccade_distance' in df.columns else 0
     scan_velocity = scan_path / duration if duration > 0 else 0
     
-    # === DISTRIBUZIONE GAZE ===
     h_counts = df['gaze_horizontal'].value_counts(normalize=True) * 100 if 'gaze_horizontal' in df.columns else pd.Series()
     v_counts = df['gaze_vertical'].value_counts(normalize=True) * 100 if 'gaze_vertical' in df.columns else pd.Series()
     
-    # === PARLATO ===
+    # === TALKING ===
     talking_counts = df['is_talking'].value_counts(normalize=True) * 100 if 'is_talking' in df.columns else pd.Series()
     pct_talking = talking_counts.get(True, 0)
     
@@ -230,15 +220,15 @@ def calculate_metrics(data_list):
         if consecutive >= 3:
             fixation_count += 1
     
-    # === EAR MEDIO ===
+    # === AVG EAR ===
     avg_ear = df['avg_ear'].mean() if 'avg_ear' in df.columns else 0
     
-    # === CALCOLO STRESS REALISTICO ===
-    pct_down = v_counts.get('giu', 0)
+    # === STRESS CALCULATION ===
+    pct_down = v_counts.get('down', 0)
     stress_score = calculate_stress_score(bpm, variability, scan_velocity, pct_down)
     stress_level = get_stress_level(stress_score)
     
-    # === RETURN METRICHE COMPLETE ===
+    # === RETURN FULL METRICS ===
     return {
         'duration_seconds': round(duration, 2),
         'total_frames': len(df),
@@ -251,10 +241,10 @@ def calculate_metrics(data_list):
         'gaze_variability': round(variability, 4),
         'fixation_count': fixation_count,
         'avg_ear': round(avg_ear, 4),
-        'pct_looking_left': round(h_counts.get('sinistra', 0), 1),
-        'pct_looking_center': round(h_counts.get('centro', 0), 1),
-        'pct_looking_right': round(h_counts.get('destra', 0), 1),
-        'pct_looking_up': round(v_counts.get('su', 0), 1),
+        'pct_looking_left': round(h_counts.get('left', 0), 1),
+        'pct_looking_center': round(h_counts.get('center', 0), 1),
+        'pct_looking_right': round(h_counts.get('right', 0), 1),
+        'pct_looking_up': round(v_counts.get('up', 0), 1),
         'pct_looking_down': round(pct_down, 1),
         'pct_talking': round(pct_talking, 1),
         'stress_score': stress_score,
@@ -265,7 +255,7 @@ def calculate_metrics(data_list):
 # ========== UTILITY FUNCTIONS ==========
 
 def process_data_for_metrics(data_list):
-    """Processa una lista di dati raw aggiungendo campi calcolati necessari"""
+    """Processes raw data list adding calculated fields"""
     if not data_list:
         return data_list
     
@@ -276,7 +266,7 @@ def process_data_for_metrics(data_list):
 
 
 def validate_data_point(data_point):
-    """Valida che un singolo data point abbia tutti i campi necessari"""
+    """Validates that a single data point has all required fields"""
     required_fields = [
         'face_detected', 'timestamp', 'gaze_x', 'gaze_y',
         'blink_detected', 'is_talking', 'avg_ear'
@@ -290,5 +280,5 @@ def validate_data_point(data_point):
 
 
 def filter_valid_data(data_list):
-    """Filtra solo i data point validi da una lista"""
+    """Filters only valid data points from a list"""
     return [d for d in data_list if validate_data_point(d)]
