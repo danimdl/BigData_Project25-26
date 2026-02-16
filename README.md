@@ -36,10 +36,16 @@ The architecture follows a microservices-oriented pattern where the Tracker (Pro
 | Containerization | Docker | Kafka & Zookeeper orchestration |
 
 ## Requirements
-
-- **Python:** 3.10 or 3.11 (Recommended)
-- **Docker Desktop:** Required for running the Kafka environment.
-- **Webcam:** Functional camera for eye tracking.
+-confluent-kafka
+-streamlit>=1.28.0
+-opencv-python-headless>=4.8.0
+-mediapipe==0.10.11
+-numpy>=1.24.0,<2.0.0
+-pandas>=2.0.0
+-plotly>=5.18.0
+- Python: 3.10 or 3.11 (Recommended)
+- Docker Desktop: Required for running the Kafka environment.
+- Webcam: Functional camera for eye tracking.
 
 ## Installation
 
@@ -127,7 +133,7 @@ Data is streamed to Kafka using a structured "Envelope" format to support schema
       "stress_score": 45
   }
 }
-```
+
 
 ### 3. Stress Score Calculation (0-100)
 
@@ -169,4 +175,8 @@ Developed for the Big Data Course 2025-26 - University of Camerino (UNICAM).
 - Marco Francoletti
 - Lorenzo Marcantognini
 
-University of Camerino | School of Science and Technology
+##  Bibliography
+-Kafka documentation: https://kafka.apache.org/41/getting-started/introduction/
+-Streamlit documentation: https://docs.streamlit.io/
+-Open CV documentation http://opencv.org/
+-Docker documentation: https://docs.docker.com/manuals/
