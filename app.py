@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import json
 import os
+import uuid
 from datetime import datetime
 from tracker_engine import EyeTracker
 
@@ -62,6 +63,7 @@ def main():
     if 'tracker' not in st.session_state: st.session_state.tracker = EyeTracker()
     if 'sessions_archive' not in st.session_state: st.session_state.sessions_archive = []
     if 'current_session_data' not in st.session_state: st.session_state.current_session_data = []
+    if 'session_id' not in st.session_state: st.session_state.session_id = str(uuid.uuid4())
 
     # --- SIDEBAR ---
     with st.sidebar:
@@ -92,6 +94,8 @@ def main():
             with c1:
                 if not st.session_state.recording:
                     if st.button("▶️ START SESSION", type="primary", use_container_width=True):
+                        st.session_state.session_id = str(uuid.uuid4())
+                        st.session_state.tracker.session_id = st.session_state.session_id
                         st.session_state.tracker.reset_counters()
                         st.session_state.current_session_data = []
                         if os.path.exists(WORKER_DATA_FILE): os.remove(WORKER_DATA_FILE)

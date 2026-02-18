@@ -93,16 +93,21 @@ def main():
                     if len(data_buffer) > 0:
                         avg_stress = sum([int(min(100, (x.get('total_blinks',0)*3) + (x.get('avg_ear',0)*10))) for x in data_buffer]) / len(data_buffer)
                         
+                        session_id = raw_msg.get('session_id', 'default_session')
+                        
                         agg_payload = {
                             "timestamp": current_time,
                             "type": "PERIODIC_SUMMARY",
+                            "session_id": session_id,
                             "metrics": {
                                 "avg_stress": round(avg_stress, 1),
                                 "total_blinks": current_blinks,
                                 "is_talking": is_talking
                             }
                         }
-                        producer.produce(TOPIC_AGG, json.dumps(agg_payload).encode('utf-8'))
+                        producer.produce(TOPIC_AGG, 
+                                       key=session_id.encode('utf-8'),
+                                       value=json.dumps(agg_payload).encode('utf-8'))
                         producer.poll(0)
                         last_kafka_agg = current_time
 

@@ -18,7 +18,7 @@ class EyeTracker:
     L_TOP, L_BOT = [159], [145]
     R_TOP, R_BOT = [386], [374]
 
-    def __init__(self, blink_threshold=0.21, mouth_threshold=0.2):
+    def __init__(self, blink_threshold=0.21, mouth_threshold=0.2, session_id=None):
         print("Initializing EyeTracker...")
         self.mp_face_mesh = mp.solutions.face_mesh
         self.face_mesh = self.mp_face_mesh.FaceMesh(
@@ -30,6 +30,7 @@ class EyeTracker:
         self.eyes_closed = False
         self.blink_total = 0
         self.kafka_topic = 'gaze_data'
+        self.session_id = session_id or 'default_session'
         
         self.x_sensitivity, self.y_sensitivity = 3.8, 4.2
         self.history_x, self.history_y = [], []
@@ -134,9 +135,12 @@ class EyeTracker:
                 kafka_payload = {
                     "timestamp": data['timestamp'],
                     "type": "REALTIME_DATA",
+                    "session_id": self.session_id,
                     "metrics": data
                 }
-                self.producer.produce(self.kafka_topic, json.dumps(kafka_payload).encode('utf-8'))
+                self.producer.produce(self.kafka_topic, 
+                                    key=self.session_id.encode('utf-8'),
+                                    value=json.dumps(kafka_payload).encode('utf-8'))
                 self.producer.poll(0)
             except Exception as e:
                 pass
