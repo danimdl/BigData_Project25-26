@@ -133,7 +133,7 @@ Data is streamed to Kafka using a structured "Envelope" format to support schema
       "stress_score": 45
   }
 }
-
+```
 
 ### 3. Stress Score Calculation (0-100)
 
