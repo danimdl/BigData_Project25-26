@@ -10,8 +10,7 @@ from datetime import datetime
 from tracker_engine import EyeTracker
 
 # Shared file with Worker
-WORKER_DATA_FILE = 'dashboard_data.json'
-
+WORKER_DATA_FILE = './shared_data/dashboard_data.json'
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Eye Tracking Pro", layout="wide", page_icon="👁️")
 
@@ -98,7 +97,12 @@ def main():
                         st.session_state.tracker.session_id = st.session_state.session_id
                         st.session_state.tracker.reset_counters()
                         st.session_state.current_session_data = []
-                        if os.path.exists(WORKER_DATA_FILE): os.remove(WORKER_DATA_FILE)
+                        if os.path.exists(WORKER_DATA_FILE):
+                            try:
+                                os.remove(WORKER_DATA_FILE)
+                            except PermissionError:
+                                with open(WORKER_DATA_FILE, 'w') as f:
+                                    f.write('{}')
                         st.session_state.recording = True
                         st.rerun()
             with c2:

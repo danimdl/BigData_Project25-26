@@ -7,17 +7,18 @@ from confluent_kafka import Consumer, Producer
 from analytics_utils import  process_data_for_metrics, calculate_metrics
 
 # --- CONFIGURATION ---
-KAFKA_BROKER = 'localhost:9092'
-TOPIC_RAW = 'gaze_data'
-TOPIC_AGG = 'gaze_aggregates'
-OUTPUT_FILE = 'dashboard_data.json'
-LOG_FILE = 'worker.log'
+# allow overriding via environment variables (useful in container)
+KAFKA_BROKER = os.environ.get('KAFKA_BROKER', 'localhost:9092')
+TOPIC_RAW = os.environ.get('TOPIC_RAW', 'gaze_data')
+TOPIC_AGG = os.environ.get('TOPIC_AGG', 'gaze_aggregates')
+OUTPUT_FILE = os.environ.get('OUTPUT_FILE', 'dashboard_data.json')
+LOG_FILE = os.environ.get('LOG_FILE', 'worker.log')
 
 CONFIG = {
-    'buffer_size': 300,
-    'update_interval': 0.1,
-    'log_interval': 1.0,
-    'kafka_agg_interval': 5.0
+    'buffer_size': int(os.environ.get('BUFFER_SIZE', 300)),     
+    'update_interval': float(os.environ.get('UPDATE_INTERVAL', 0.1)),
+    'log_interval': float(os.environ.get('LOG_INTERVAL', 1.0)),
+    'kafka_agg_interval': float(os.environ.get('KAFKA_AGG_INTERVAL', 5.0))
 }
 
 def log_to_file(msg):

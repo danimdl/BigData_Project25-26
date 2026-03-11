@@ -23,3 +23,19 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: analytics_worker
+    depends_on:
+      - broker
+    volumes:
+      - ./shared_data:/app/shared_data
+    environment:
+      KAFKA_BROKER: broker:29092 
+      TOPIC_RAW: gaze_data
+      TOPIC_AGG: gaze_aggregates
+      OUTPUT_FILE: /app/shared_data/dashboard_data.json
+      LOG_FILE: /app/shared_data/worker.log
