@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+RUN useradd -ms /bin/bash appuser
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY analytics_worker.py analytics_utils.py .
+
+USER appuser
+
+# default command
+CMD ["python", "analytics_worker.py"]

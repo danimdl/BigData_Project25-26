@@ -80,32 +80,34 @@ pip install -r requirements.txt
 
 To start the full system, you need to run three separate components in this specific order:
 
-### 1. Start the Infrastructure (Kafka)
+### 1. Start the Infrastructure (Kafka) & Worker
 
 Ensure Docker Desktop is running, then execute:
 
 ```bash
-docker-compose up -d
+docker-compose up --build -d
 ```
 
-Wait about 30 seconds for the Broker to fully initialize.
+Give the containers ~30 seconds to become healthy. You can check their status using `docker ps`.
 
-### 2. Start the Analytics Brain (Worker)
+> ⚠️ If you prefer to run the worker outside of Docker, you can still execute `python analytics_worker.py` after step 1; the script reads the same environment variables used by the container.
 
-Open a terminal and run the worker. This service listens to raw data, calculates stress, and writes to the dashboard files.
+### 2. Start the User Interface (Streamlit)
 
-```bash
-python analytics_worker.py
-```
-
-You should see a message indicating the Worker Analytics is online.
-
-### 3. Start the User Interface (Streamlit)
-
-Open a new terminal and launch the dashboard. This will also start the Tracker engine when you press "Start".
+Open a new terminal and launch the dashboard. This service runs on your host and reads the shared `dashboard_data.json` file produced by the worker.
 
 ```bash
 streamlit run app.py
+```
+
+### 3. (Optional) Running the Worker Manually
+
+If you ever need to debug or run the worker without Docker, export the Kafka host and file paths manually:
+
+```bash
+export KAFKA_BROKER=localhost:9092
+export OUTPUT_FILE=dashboard_data.json
+python analytics_worker.py
 ```
 
 ## Methodology & Algorithms
